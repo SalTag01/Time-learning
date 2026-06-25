@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Tell the Time — English & Russian</title>
+<style>
+  :root{
+    color-scheme:light;
+    --bg:#f4f7fb;
+    --card:#ffffff;
+    --ink:#1f2d3d;
+    --soft:#6b7a90;
+    --line:#e3e9f2;
+    --hover:#eef2f9;
+    --blue:#2f6df6;
+    --green:#27ae60;
+    --red:#e74c3c;
+    --face:#ffffff;
+    --faceLine:#dfe6f0;
+    --tick:#c4cfde;
+    --numeral:#1f2d3d;
+    --hand:#1f2d3d;
+  }
+  html[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#0f1623;
+    --card:#16212f;
+    --ink:#e8eef6;
+    --soft:#9fb0c5;
+    --line:#27344a;
+    --hover:#1f2d40;
+    --blue:#5b91ff;
+    --green:#33c46f;
+    --red:#ff6b5e;
+    --face:#1b2738;
+    --faceLine:#33445e;
+    --tick:#3c4f6b;
+    --numeral:#e8eef6;
+    --hand:#e8eef6;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.5;
+    transition:background .2s,color .2s;
+  }
+  header{position:relative;text-align:center;padding:30px 70px 10px}
+  header h1{margin:0;font-size:30px}
+  header p{margin:6px 0 0;color:var(--soft)}
+  .corner{position:absolute;top:18px;display:flex;gap:6px}
+  .corner.left{left:16px}
+  .corner.right{right:16px}
+  .iconbtn{
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    height:40px;min-width:40px;padding:0 10px;border-radius:999px;
+    font-size:15px;cursor:pointer;
+  }
+  .iconbtn:hover{background:var(--hover)}
+  .iconbtn.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .wrap{max-width:980px;margin:0 auto;padding:0 16px 60px}
+  .tabs{display:flex;gap:8px;justify-content:center;margin:18px 0}
+  .tabs button{
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    font-size:16px;padding:10px 22px;border-radius:999px;cursor:pointer;
+  }
+  .tabs button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .panel{display:none}
+  .panel.on{display:block}
+
+  .langpick{display:flex;gap:8px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+  .langpick button{
+    border:1px solid var(--line);background:var(--card);color:var(--ink);
+    padding:8px 18px;border-radius:999px;cursor:pointer;font-size:15px;
+  }
+  .langpick button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+  .stage{
+    display:flex;flex-wrap:wrap;gap:24px;align-items:center;justify-content:center;
+    background:var(--card);border:1px solid var(--line);border-radius:18px;padding:24px;
+  }
+  .clock{width:260px;height:260px;flex:0 0 auto}
+  .readout{flex:1;min-width:230px;text-align:center}
+  .digital{font-family:"Consolas",monospace;font-size:54px;font-weight:700;letter-spacing:2px}
+  .ampm{font-size:22px;color:var(--soft)}
+  .h24{color:var(--soft);font-size:18px;margin-top:4px}
+  .badge{
+    display:inline-block;margin-top:12px;padding:6px 16px;
+    background:var(--bg);border:1px solid var(--line);border-radius:999px;font-size:16px;
+  }
+
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .card .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .card .tag{font-size:13px;color:var(--soft);text-transform:uppercase;letter-spacing:1px}
+  .card .phrase{font-size:24px;font-weight:700;margin:8px 0 2px}
+  .card .extra{color:var(--soft);font-size:15px;min-height:1.2em}
+  .say{border:none;background:var(--bg);width:40px;height:40px;border-radius:50%;font-size:18px;cursor:pointer;color:var(--ink);flex:0 0 auto}
+  .say:hover{background:var(--hover)}
+
+  .controls{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+  .slider{width:100%;height:36px;cursor:pointer;accent-color:var(--blue)}
+  .btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px}
+  .btns button{border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:10px 16px;border-radius:10px;font-size:15px;cursor:pointer}
+  .btns button:hover{background:var(--hover)}
+  .btns button.go{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+  details{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 18px}
+  summary{cursor:pointer;font-weight:600;padding:12px 0;font-size:17px}
+  details ul{margin:0 0 14px;padding-left:20px}
+  details li{margin:6px 0}
+  details b{color:var(--blue)}
+
+  .qhead{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+  .score{font-size:16px;color:var(--soft)}
+  .question{text-align:center;font-size:20px;margin:18px 0}
+  .options{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .options button{
+    border:2px solid var(--line);background:var(--card);color:var(--ink);
+    padding:16px;border-radius:14px;font-size:19px;cursor:pointer;text-align:center;
+  }
+  .options button small{display:block;color:var(--soft);font-size:14px;font-weight:400}
+  .options button.right{border-color:var(--green);background:color-mix(in srgb,var(--green) 14%,var(--card))}
+  .options button.wrong{border-color:var(--red);background:color-mix(in srgb,var(--red) 14%,var(--card))}
+  .feedback{text-align:center;font-size:20px;min-height:30px;margin:16px 0;font-weight:700}
+  .next{display:block;margin:0 auto;border:none;background:var(--blue);color:#fff;font-size:17px;padding:12px 28px;border-radius:12px;cursor:pointer}
+
+  @media(max-width:640px){
+    header{padding:30px 16px 10px}
+    .corner{position:static;justify-content:center;margin-bottom:8px}
+    header{display:flex;flex-direction:column;align-items:center}
+    .cards{grid-template-columns:1fr}
+    .options{grid-template-columns:1fr}
+    .digital{font-size:44px}
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="corner left">
+    <button class="iconbtn on" id="uiEn" data-u="en">EN</button>
+    <button class="iconbtn" id="uiRu" data-u="ru">RU</button>
+  </div>
+  <div class="corner right">
+    <button class="iconbtn" id="theme" title="Switch light / dark">🌙</button>
+  </div>
+  <h1 data-i18n="title">🕐 Tell the Time</h1>
+  <p data-i18n="subtitle">Learn to say the time in English and Russian — the way people really say it.</p>
+</header>
+
+<div class="wrap">
+  <div class="tabs">
+    <button id="tabLearn" class="on" data-i18n="tabLearn">Learn</button>
+    <button id="tabQuiz" data-i18n="tabQuiz">Quiz</button>
+  </div>
+
+  <section id="learn" class="panel on">
+    <div class="langpick" id="learnLang">
+      <button data-l="en" data-i18n="filEn">🇬🇧 English</button>
+      <button data-l="ru" data-i18n="filRu">🇷🇺 Russian</button>
+      <button data-l="both" class="on" data-i18n="filBoth">Both</button>
+    </div>
+
+    <div class="stage">
+      <svg class="clock" id="clock" viewBox="0 0 240 240" role="img"></svg>
+      <div class="readout">
+        <div class="digital"><span id="dTime">3:15</span> <span class="ampm" id="dAmpm">PM</span></div>
+        <div class="h24" id="d24">15:15 (24h)</div>
+        <div class="badge" id="badge">☀️ afternoon</div>
+      </div>
+    </div>
+
+    <div class="cards">
+      <div class="card" data-lang="en">
+        <div class="top">
+          <span class="tag" data-i18n="tagEnNat">🇬🇧 The natural way</span>
+          <button class="say" data-say="en" data-src="enNat" aria-label="Listen">🔊</button>
+        </div>
+        <div class="phrase" id="enNat">Quarter past three</div>
+        <div class="extra" data-i18n="extraEnNat">how people usually say it</div>
+      </div>
+
+      <div class="card" data-lang="en">
+        <div class="top">
+          <span class="tag" data-i18n="tagEnDig">🇬🇧 The simple way</span>
+          <button class="say" data-say="en" data-src="enDig" aria-label="Listen">🔊</button>
+        </div>
+        <div class="phrase" id="enDig">Three fifteen</div>
+        <div class="extra" data-i18n="extraEnDig">just read the numbers</div>
+      </div>
+
+      <div class="card" data-lang="ru">
+        <div class="top">
+          <span class="tag" data-i18n="tagRuNat">🇷🇺 The natural way</span>
+          <button class="say" data-say="ru" data-src="ruNat" aria-label="Listen">🔊</button>
+        </div>
+        <div class="phrase" id="ruNat" lang="ru">четверть четвёртого</div>
+        <div class="extra" id="ruNatTr">chetvert chetvyortogo</div>
+      </div>
+
+      <div class="card" data-lang="ru">
+        <div class="top">
+          <span class="tag" data-i18n="tagRuDig">🇷🇺 The simple way</span>
+          <button class="say" data-say="ru" data-src="ruDig" aria-label="Listen">🔊</button>
+        </div>
+        <div class="phrase" id="ruDig" lang="ru">три пятнадцать</div>
+        <div class="extra" id="ruDigTr">tri pyatnadtsat</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <input class="slider" id="slider" type="range" min="0" max="1439" value="915" aria-label="Set the time">
+      <div class="btns">
+        <button data-step="-60" data-i18n="bHour">‹ hour</button>
+        <button data-step="-5" data-i18n="b5">‹ 5 min</button>
+        <button data-step="-1" data-i18n="b1">‹ 1 min</button>
+        <button data-step="1" data-i18n="a1">1 min ›</button>
+        <button data-step="5" data-i18n="a5">5 min ›</button>
+        <button data-step="60" data-i18n="aHour">hour ›</button>
+        <button id="rand" class="go" data-i18n="rand">🎲 Random time</button>
+      </div>
+    </div>
+
+    <details>
+      <summary data-i18n="guide">💡 How does it work? (a quick, easy guide)</summary>
+      <div id="guideEn">
+        <ul>
+          <li><b>English:</b> after the hour say "<b>past</b>" → <i>ten past four</i>. Before the hour say "<b>to</b>" → <i>ten to five</i>. 15 min is a "<b>quarter</b>", 30 min is "<b>half</b>".</li>
+          <li><b>Easy English:</b> or just read the numbers → <i>four ten</i>, <i>four fifty</i>. Everyone understands this.</li>
+          <li><b>Russian, first half hour:</b> count <i>into</i> the next hour. 9:20 → "двадцать минут десятого" (twenty minutes of the tenth).</li>
+          <li><b>Russian half:</b> 9:30 → "полдесятого" (half of the tenth). Quick and very common.</li>
+          <li><b>Russian "to":</b> after the half hour use "<b>без</b>" (without). 8:55 → "без пяти девять" (without five, nine).</li>
+          <li><b>Easy Russian:</b> or just read the numbers → "девять двадцать" (nine twenty). People say this all the time too.</li>
+          <li>🔊 Tap a speaker button to <b>hear</b> the phrase out loud.</li>
+        </ul>
+      </div>
+      <div id="guideRu" style="display:none">
+        <ul>
+          <li><b>Английский:</b> после часа говорят «<b>past</b>» → <i>ten past four</i> (десять минут пятого). До часа — «<b>to</b>» → <i>ten to five</i> (без десяти пять). 15 минут — «<b>quarter</b>» (четверть), 30 — «<b>half</b>» (половина).</li>
+          <li><b>Простой английский:</b> или просто читают цифры → <i>four ten</i>, <i>four fifty</i>. Так понятно всем.</li>
+          <li><b>Русский, первая половина часа:</b> считаем в сторону <i>следующего</i> часа. 9:20 → «двадцать минут десятого».</li>
+          <li><b>Половина:</b> 9:30 → «полдесятого». Коротко и привычно.</li>
+          <li><b>Русское «без»:</b> после половины говорят «<b>без</b>». 8:55 → «без пяти девять».</li>
+          <li><b>Простой русский:</b> или просто читаем цифры → «девять двадцать». Так тоже говорят постоянно.</li>
+          <li>🔊 Нажмите на динамик, чтобы <b>услышать</b> фразу.</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <section id="quiz" class="panel">
+    <div class="qhead">
+      <div class="langpick" style="margin:0">
+        <button id="qEn" class="on" data-i18n="qEn">🇬🇧 English</button>
+        <button id="qRu" data-i18n="qRu">🇷🇺 Russian</button>
+      </div>
+      <div class="score"><span data-i18n="score">Score:</span> <span id="score">0</span> / <span id="total">0</span></div>
+    </div>
+
+    <div class="stage">
+      <svg class="clock" id="qclock" viewBox="0 0 240 240" role="img"></svg>
+      <div class="readout">
+        <div class="digital" id="qDigital">3:15</div>
+      </div>
+    </div>
+
+    <div class="question" data-i18n="question">How do you say this time?</div>
+    <div class="options" id="options"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next" id="next" data-i18n="next">Next time →</button>
+  </section>
+</div>
+
+<script>
+const hoursNom=['','час','два','три','четыре','пять','шесть','семь','восемь','девять','десять','одиннадцать','двенадцать'];
+const ordGen=['','первого','второго','третьего','четвёртого','пятого','шестого','седьмого','восьмого','девятого','десятого','одиннадцатого','двенадцатого'];
+const unitsFem=['ноль','одна','две','три','четыре','пять','шесть','семь','восемь','девять','десять','одиннадцать','двенадцать','тринадцать','четырнадцать','пятнадцать','шестнадцать','семнадцать','восемнадцать','девятнадцать'];
+const tensFem={20:'двадцать',30:'тридцать',40:'сорок',50:'пятьдесят'};
+const unitsGen=['','одной','двух','трёх','четырёх','пяти','шести','семи','восьми','девяти','десяти','одиннадцати','двенадцати','тринадцати','четырнадцати','пятнадцати','шестнадцати','семнадцати','восемнадцати','девятнадцати'];
+const tensGen={20:'двадцати',30:'тридцати',40:'сорока',50:'пятидесяти'};
+
+const onesEn=['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+const tensEn={20:'twenty',30:'thirty',40:'forty',50:'fifty'};
+
+const trMap={'а':'a','б':'b','в':'v','г':'g','д':'d','е':'e','ё':'yo','ж':'zh','з':'z','и':'i','й':'y','к':'k','л':'l','м':'m','н':'n','о':'o','п':'p','р':'r','с':'s','т':'t','у':'u','ф':'f','х':'kh','ц':'ts','ч':'ch','ш':'sh','щ':'shch','ъ':'','ы':'y','ь':'','э':'e','ю':'yu','я':'ya',' ':' '};
+
+const text={
+  en:{
+    title:'🕐 Tell the Time',
+    subtitle:'Learn to say the time in English and Russian — the way people really say it.',
+    tabLearn:'Learn', tabQuiz:'Quiz',
+    filEn:'🇬🇧 English', filRu:'🇷🇺 Russian', filBoth:'Both',
+    tagEnNat:'🇬🇧 The natural way', tagEnDig:'🇬🇧 The simple way',
+    tagRuNat:'🇷🇺 The natural way', tagRuDig:'🇷🇺 The simple way',
+    extraEnNat:'how people usually say it', extraEnDig:'just read the numbers',
+    bHour:'‹ hour', b5:'‹ 5 min', b1:'‹ 1 min', a1:'1 min ›', a5:'5 min ›', aHour:'hour ›',
+    rand:'🎲 Random time',
+    guide:'💡 How does it work? (a quick, easy guide)',
+    qEn:'🇬🇧 English', qRu:'🇷🇺 Russian',
+    score:'Score:', question:'How do you say this time?',
+    correct:'✅ Correct!', wrong:'❌ Not quite', next:'Next time →',
+    h24:'(24h)', themeTitle:'Switch light / dark', setTime:'Set the time',
+    morning:'🌅 morning', afternoon:'☀️ afternoon', evening:'🌆 evening', night:'🌙 night'
+  },
+  ru:{
+    title:'🕐 Который час?',
+    subtitle:'Учитесь называть время по-английски и по-русски — так, как говорят на самом деле.',
+    tabLearn:'Учить', tabQuiz:'Тест',
+    filEn:'🇬🇧 Английский', filRu:'🇷🇺 Русский', filBoth:'Оба',
+    tagEnNat:'🇬🇧 Как говорят обычно', tagEnDig:'🇬🇧 Простой способ',
+    tagRuNat:'🇷🇺 Как говорят обычно', tagRuDig:'🇷🇺 Простой способ',
+    extraEnNat:'так говорят чаще всего', extraEnDig:'просто читаем цифры',
+    bHour:'‹ час', b5:'‹ 5 мин', b1:'‹ 1 мин', a1:'1 мин ›', a5:'5 мин ›', aHour:'час ›',
+    rand:'🎲 Случайное время',
+    guide:'💡 Как это работает? (быстро и просто)',
+    qEn:'🇬🇧 Английский', qRu:'🇷🇺 Русский',
+    score:'Счёт:', question:'Как сказать это время?',
+    correct:'✅ Правильно!', wrong:'❌ Не совсем', next:'Дальше →',
+    h24:'(24ч)', themeTitle:'Светлая / тёмная тема', setTime:'Выберите время',
+    morning:'🌅 утро', afternoon:'☀️ день', evening:'🌆 вечер', night:'🌙 ночь'
+  }
+};
+
+function translit(s){return s.toLowerCase().split('').map(c=>trMap[c]!==undefined?trMap[c]:c).join('')}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1)}
+function pad(n){return n<10?'0'+n:''+n}
+
+function chasSlovo(h){if(h===1)return 'час';if(h>=2&&h<=4)return 'часа';return 'часов'}
+function oclock(h){return h===1?'час':hoursNom[h]+' '+chasSlovo(h)}
+
+function minFem(m){if(m<20)return unitsFem[m];const t=Math.floor(m/10)*10,u=m%10;return u?tensFem[t]+' '+unitsFem[u]:tensFem[t]}
+function minGen(m){if(m<20)return unitsGen[m];const t=Math.floor(m/10)*10,u=m%10;return u?tensGen[t]+' '+unitsGen[u]:tensGen[t]}
+function minNoun(m){const u=m%10,d=m%100;if(u===1&&d!==11)return 'минута';if(u>=2&&u<=4&&!(d>=12&&d<=14))return 'минуты';return 'минут'}
+
+function numEn(n){if(n<20)return onesEn[n];const t=Math.floor(n/10)*10,u=n%10;return u?tensEn[t]+'-'+onesEn[u]:tensEn[t]}
+
+function badgeKey(h){if(h>=5&&h<=11)return 'morning';if(h>=12&&h<=16)return 'afternoon';if(h>=17&&h<=20)return 'evening';return 'night'}
+
+function enNatural(h12,m){
+  const nh=h12%12+1;const H=numEn(h12);let s;
+  if(m===0)s=H+" o'clock";
+  else if(m===15)s='quarter past '+H;
+  else if(m===30)s='half past '+H;
+  else if(m===45)s='quarter to '+numEn(nh);
+  else if(m<30)s=(m%5===0?numEn(m):numEn(m)+(m===1?' minute':' minutes'))+' past '+H;
+  else{const r=60-m;s=(r%5===0?numEn(r):numEn(r)+(r===1?' minute':' minutes'))+' to '+numEn(nh)}
+  return cap(s);
+}
+function enDigital(h12,m){
+  if(m===0)return cap(numEn(h12))+" o'clock";
+  const mm=m<10?'oh '+numEn(m):numEn(m);
+  return cap(numEn(h12))+' '+mm;
+}
+function ruNatural(h12,m){
+  const nh=h12%12+1;
+  if(m===0)return oclock(h12);
+  if(m===15)return 'четверть '+ordGen[nh];
+  if(m===30)return 'пол'+ordGen[nh];
+  if(m===45)return 'без четверти '+hoursNom[nh];
+  if(m<30)return minFem(m)+' '+minNoun(m)+' '+ordGen[nh];
+  return 'без '+minGen(60-m)+' '+hoursNom[nh];
+}
+function ruDigital(h12,m){
+  const hw=h12===1?'час':hoursNom[h12];
+  if(m===0)return oclock(h12);
+  if(m<10)return hw+' ноль '+unitsFem[m];
+  return hw+' '+minFem(m);
+}
+
+function buildClock(svg){
+  const id=svg.id;
+  let s='<circle cx="120" cy="120" r="116" fill="var(--face)" stroke="var(--faceLine)" stroke-width="4"/>';
+  for(let i=0;i<60;i++){
+    const a=i*6*Math.PI/180;
+    const big=i%5===0;
+    const r1=big?98:104,r2=110;
+    const x1=120+r1*Math.sin(a),y1=120-r1*Math.cos(a);
+    const x2=120+r2*Math.sin(a),y2=120-r2*Math.cos(a);
+    s+='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+(big?'var(--blue)':'var(--tick)')+'" stroke-width="'+(big?3:1.5)+'"/>';
+  }
+  for(let i=1;i<=12;i++){
+    const a=i*30*Math.PI/180,r=82;
+    const x=120+r*Math.sin(a),y=120-r*Math.cos(a)+7;
+    s+='<text x="'+x+'" y="'+y+'" text-anchor="middle" font-size="20" font-weight="700" fill="var(--numeral)">'+i+'</text>';
+  }
+  s+='<line id="'+id+'-h" x1="120" y1="120" x2="120" y2="58" stroke="var(--hand)" stroke-width="7" stroke-linecap="round"/>';
+  s+='<line id="'+id+'-m" x1="120" y1="120" x2="120" y2="34" stroke="var(--blue)" stroke-width="5" stroke-linecap="round"/>';
+  s+='<circle cx="120" cy="120" r="7" fill="var(--hand)"/>';
+  svg.innerHTML=s;
+}
+function setHands(svg,mins){
+  const h24=Math.floor(mins/60),m=mins%60;
+  const ha=(h24%12)*30+m*0.5;
+  const ma=m*6;
+  svg.querySelector('#'+svg.id+'-h').setAttribute('transform','rotate('+ha+' 120 120)');
+  svg.querySelector('#'+svg.id+'-m').setAttribute('transform','rotate('+ma+' 120 120)');
+  svg.setAttribute('aria-label',(((h24+11)%12)+1)+':'+pad(m)+' '+(h24<12?'AM':'PM'));
+}
+function parts(mins){
+  const h24=Math.floor(mins/60),m=mins%60;
+  const h12=((h24+11)%12)+1;
+  return {h24,m,h12};
+}
+
+let ui='en';
+let mins=915;
+const clock=document.getElementById('clock');
+const qclock=document.getElementById('qclock');
+const slider=document.getElementById('slider');
+buildClock(clock);buildClock(qclock);
+
+function render(){
+  const {h24,m,h12}=parts(mins);
+  setHands(clock,mins);
+  document.getElementById('dTime').textContent=h12+':'+pad(m);
+  document.getElementById('dAmpm').textContent=h24<12?'AM':'PM';
+  document.getElementById('d24').textContent=pad(h24)+':'+pad(m)+' '+text[ui].h24;
+  document.getElementById('badge').textContent=text[ui][badgeKey(h24)];
+
+  document.getElementById('enNat').textContent=enNatural(h12,m);
+  document.getElementById('enDig').textContent=enDigital(h12,m);
+  const ru1=ruNatural(h12,m),ru2=ruDigital(h12,m);
+  document.getElementById('ruNat').textContent=ru1;
+  document.getElementById('ruNatTr').textContent=translit(ru1);
+  document.getElementById('ruDig').textContent=ru2;
+  document.getElementById('ruDigTr').textContent=translit(ru2);
+}
+function setMins(v){mins=((v%1440)+1440)%1440;slider.value=mins;render()}
+
+slider.addEventListener('input',()=>setMins(parseInt(slider.value)));
+document.querySelectorAll('.btns button[data-step]').forEach(b=>{
+  b.addEventListener('click',()=>setMins(mins+parseInt(b.dataset.step)));
+});
+document.getElementById('rand').addEventListener('click',()=>setMins(Math.floor(Math.random()*1440)));
+
+function speak(text,lang){
+  if(!('speechSynthesis'in window))return;
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang=lang==='ru'?'ru-RU':'en-US';
+  u.rate=0.85;
+  speechSynthesis.speak(u);
+}
+document.querySelectorAll('.say').forEach(b=>{
+  b.addEventListener('click',()=>speak(document.getElementById(b.dataset.src).textContent,b.dataset.say));
+});
+
+function applyTheme(th){
+  document.documentElement.setAttribute('data-theme',th);
+  document.getElementById('theme').textContent=th==='dark'?'☀️':'🌙';
+  try{localStorage.setItem('tt_theme',th)}catch(e){}
+}
+document.getElementById('theme').addEventListener('click',()=>{
+  applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+});
+
+function applyLearnLang(l){
+  document.querySelectorAll('.card[data-lang]').forEach(c=>{
+    c.style.display=(l==='both'||c.dataset.lang===l)?'':'none';
+  });
+  document.querySelectorAll('#learnLang button').forEach(b=>b.classList.toggle('on',b.dataset.l===l));
+  try{localStorage.setItem('tt_lang',l)}catch(e){}
+}
+document.querySelectorAll('#learnLang button').forEach(b=>{
+  b.addEventListener('click',()=>applyLearnLang(b.dataset.l));
+});
+
+function applyUi(u){
+  ui=u;
+  document.documentElement.lang=u;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const v=text[u][el.dataset.i18n];
+    if(v!==undefined)el.textContent=v;
+  });
+  document.getElementById('theme').title=text[u].themeTitle;
+  slider.setAttribute('aria-label',text[u].setTime);
+  document.getElementById('guideEn').style.display=u==='en'?'':'none';
+  document.getElementById('guideRu').style.display=u==='ru'?'':'none';
+  document.querySelectorAll('.corner.left button').forEach(b=>b.classList.toggle('on',b.dataset.u===u));
+  try{localStorage.setItem('tt_ui',u)}catch(e){}
+  render();
+}
+document.querySelectorAll('.corner.left button').forEach(b=>{
+  b.addEventListener('click',()=>applyUi(b.dataset.u));
+});
+
+const tabLearn=document.getElementById('tabLearn');
+const tabQuiz=document.getElementById('tabQuiz');
+tabLearn.addEventListener('click',()=>{
+  tabLearn.classList.add('on');tabQuiz.classList.remove('on');
+  document.getElementById('learn').classList.add('on');
+  document.getElementById('quiz').classList.remove('on');
+});
+tabQuiz.addEventListener('click',()=>{
+  tabQuiz.classList.add('on');tabLearn.classList.remove('on');
+  document.getElementById('quiz').classList.add('on');
+  document.getElementById('learn').classList.remove('on');
+  if(!quizReady)newQuiz();
+});
+
+let quizLang='en';
+let quizMins=0;
+let quizReady=false;
+let score=0,total=0;
+const qEn=document.getElementById('qEn'),qRu=document.getElementById('qRu');
+qEn.addEventListener('click',()=>{quizLang='en';qEn.classList.add('on');qRu.classList.remove('on');newQuiz()});
+qRu.addEventListener('click',()=>{quizLang='ru';qRu.classList.add('on');qEn.classList.remove('on');newQuiz()});
+
+function niceTime(){
+  const h=1+Math.floor(Math.random()*12);
+  const m=Math.floor(Math.random()*12)*5;
+  const pm=Math.random()<0.5;
+  let h24=h%12;if(pm)h24+=12;
+  return h24*60+m;
+}
+function phraseFor(lang,t){
+  const {m,h12}=parts(t);
+  return lang==='ru'?ruNatural(h12,m):enNatural(h12,m);
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function newQuiz(){
+  quizReady=true;
+  quizMins=niceTime();
+  setHands(qclock,quizMins);
+  const {h24,m,h12}=parts(quizMins);
+  document.getElementById('qDigital').textContent=h12+':'+pad(m)+' '+(h24<12?'AM':'PM');
+  const correct=phraseFor(quizLang,quizMins);
+  const opts=[correct];
+  let guard=0;
+  while(opts.length<4&&guard<300){
+    guard++;
+    const p=phraseFor(quizLang,niceTime());
+    if(!opts.includes(p))opts.push(p);
+  }
+  shuffle(opts);
+  const box=document.getElementById('options');
+  box.innerHTML='';
+  box.removeAttribute('data-done');
+  document.getElementById('feedback').textContent='';
+  opts.forEach(p=>{
+    const b=document.createElement('button');
+    b.dataset.phrase=p;
+    if(quizLang==='ru')b.lang='ru';
+    b.appendChild(document.createTextNode(p));
+    if(quizLang==='ru'){
+      const sm=document.createElement('small');
+      sm.textContent=translit(p);
+      b.appendChild(sm);
+    }
+    b.addEventListener('click',()=>answer(b,box,correct));
+    box.appendChild(b);
+  });
+}
+function answer(btn,box,correct){
+  if(box.dataset.done)return;
+  box.dataset.done='1';
+  total++;
+  const fb=document.getElementById('feedback');
+  if(btn.dataset.phrase===correct){
+    btn.classList.add('right');
+    score++;
+    fb.textContent=text[ui].correct;
+    fb.style.color='var(--green)';
+  }else{
+    btn.classList.add('wrong');
+    fb.textContent=text[ui].wrong;
+    fb.style.color='var(--red)';
+    [...box.children].forEach(c=>{if(c.dataset.phrase===correct)c.classList.add('right')});
+  }
+  document.getElementById('score').textContent=score;
+  document.getElementById('total').textContent=total;
+}
+document.getElementById('next').addEventListener('click',newQuiz);
+
+(function init(){
+  let savedTheme='light';
+  try{savedTheme=localStorage.getItem('tt_theme')||(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}
+  applyTheme(savedTheme);
+  let savedLang='both';
+  try{savedLang=localStorage.getItem('tt_lang')||'both'}catch(e){}
+  applyLearnLang(savedLang);
+  let savedUi='en';
+  try{savedUi=localStorage.getItem('tt_ui')||((navigator.language||'').toLowerCase().indexOf('ru')===0?'ru':'en')}catch(e){}
+  applyUi(savedUi);
+})();
+</script>
+</body>
+</html>
